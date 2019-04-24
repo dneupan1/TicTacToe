@@ -1,11 +1,20 @@
+
+-- This is a Haskell implementation of Tic Tac Toe ( PLayer Vs CPU )
+--
+-- The CPU uses a number of combinations to determine the winner and 
+-- best combination is choosen by the CPU. The game if played properly
+-- by the player either ends in tie or the CPU wins
+--
+-- Reference:
 -- https://systematicgaming.wordpress.com/code-haskell-tic-tac-toe/
+
 
 module Main where
 
-type Board = [Char]
+type Board = [Char] -- list 
 
-showBoard :: Board -> String
-showBoard str =
+ticTacToe :: Board -> String
+ticTacToe str =
   " " ++ str !! 0 : [] ++ " | " ++ str !! 1 : [] ++ " | " ++ str !! 2 : []  ++ " \n" ++
   "---+---+---\n" ++
   " " ++ str !! 3 : [] ++ " | " ++ str !! 4 : [] ++ " | " ++ str !! 5 : []  ++ " \n" ++
@@ -35,7 +44,7 @@ validMoves board
   | otherwise = [y | y <- [0..8], (positionValidity board y)]
 
 -- function :: move
--- Given a board, a player and a move position, returns a new board with the
+-- Inputs are the board, a player and a move position, returns a new board with the
 -- new move applied
 move :: Board -> Char -> Int -> Board
 move (p:board) ch pos
@@ -43,7 +52,6 @@ move (p:board) ch pos
   | otherwise = ch:[] ++ board
 
 -- function :: scoreBoard
--- Score of a board (for our min/max tree)
 -- Returns 1 if the player is a winner, -1 if not and 0 if a tie
 scoreBoard :: Board -> Char -> Int
 scoreBoard board player
@@ -61,7 +69,7 @@ evaluateBoardMin board
   boards = map (move board 'O') (validMoves board)
   scores = map evaluateBoardMax boards
 
--- evaluateBoardMax
+-- funtion :: evaluateBoardMax
 -- scores the board and returns maximum value move for the given board
 evaluateBoardMax :: Board -> Int
 evaluateBoardMax board
@@ -71,7 +79,7 @@ evaluateBoardMax board
   boards = map (move board 'X') (validMoves board)
   scores = map evaluateBoardMin boards
 
--- scoreMoves
+-- function :: scoreMoves
 -- Compute score for each possible move
 -- Returns list of (Move, Score) tuples
 scoreMoves :: Board -> [(Int, Int)]
@@ -80,14 +88,14 @@ scoreMoves board = zip (validMoves board) scores
   boards = map (move board 'O') (validMoves board)
   scores = map evaluateBoardMax boards
 
--- maxScore
+-- function :: maxScore
 -- returns the move with the highest score
 maxScore :: (Int, Int) -> (Int, Int) -> (Int, Int)
 maxScore (m0, s0) (m1, s1)
   | s0 > s1 = (m0, s0)
   | otherwise = (m1, s1)
 
--- bestMove
+-- function :: bestMove
 -- choose the best possible move for CPU
 bestMove :: Board -> Int
 bestMove board = move
@@ -95,7 +103,7 @@ bestMove board = move
   scored = scoreMoves board
   (move, score) = foldr maxScore (head scored) (tail scored)
 
--- playerMove
+-- function :: playerMove
 -- Attempts to make a move on the board
 -- Returns (True, newBoard) if a valid move, with newBoard being a new game board
 -- Returns (False, board) if an invalid move, with the board being unchanged
@@ -104,7 +112,7 @@ playerMove board pos
   | not (positionValidity board pos) = (False, board)
   | otherwise = (True, (move board 'X' pos))
 
--- winner
+-- funtion :: winner
 -- Checks if the board has a winning player
 -- Returns '' if no winner, or the winner ('X' or 'O')
 winner :: Board -> Char
@@ -123,34 +131,39 @@ winner b
   -- no winner
   | otherwise = ' '
 
-play :: Board -> IO ()
+
+-- this is a recursive call that only terminates if one of the player is winner,
+-- or the game ends in a tie.
+-- If the game ends in a tie, then it runs into an error while printing the possible
+-- winning combinations.
+play :: Board -> IO () -- parameter is a function call
 play board = do
-  putStrLn ( showBoard board )
-  if (length (validMoves board) == 0 || (winner board) /= ' ')
+  putStrLn ( ticTacToe board ) -- print the board
+  if (length (validMoves board) == 0 || (winner board) /= ' ') -- checks if the user move is valid or no winner yet
     then do
-      putStrLn("Winner " ++ (show (winner board) ));
+      putStrLn("Winner " ++ (show (winner board) )); -- if winner, print the winner information
     else do
-      putStrLn ( show (validMoves board) )
-      putStrLn "Play? "
+      putStrLn ( show (validMoves board) ) -- show the new board with the filled in spots
+      putStrLn "Please choose a position. "
       pos <- getLine
-      let (valid, b) = (playerMove board (read pos) )
-      if (valid)
+      let (valid, b) = (playerMove board (read pos) ) -- check if the input is valid and not filled already
+      if (valid) -- then CPU also plays
         then do putStrLn("\n CPU turn\n");
-                if (' ' /= (winner b))
-                  then do
+                if (' ' /= (winner b)) -- if the game is not tied and there still are winning combinations
+                  then do -- print the winner board
                     putStrLn("Winner " ++ (show (winner b) ));
-                    putStrLn ( showBoard b )
+                    putStrLn ( ticTacToe b )
                   else do
-                    putStrLn( show (scoreMoves b) )
-                    if ( null (show (bestMove b)))
+                    putStrLn( show (scoreMoves b) ) -- show possible moves by the CPU, 0 is tie, 1 is winner, -1 is looser position for 'O'
+                    if ( [] == (scoreMoves b)) -- if the best move list is empty, the game is a tie
                      then do
                       putStrLn("Game was a tie");
                      else do
-                      putStrLn("Best move for CPU is position: " ++ show (bestMove b) ++ "\n" );                      
-                    play (move b 'O' (bestMove b))
+                      putStrLn("Best move for CPU is position: " ++ show (bestMove b) ++ "\n" );
+                    play (move b 'O' (bestMove b))     -- recursive funtion call                                  
         else do putStrLn("\nInvalid Move!\n");
                 play board  
 
 main = do
-  putStrLn "Tic Tac Toe!\n"
+  putStrLn "------- Tic Tac Toe! -------\n You are X in this game.\n"
   play "012345678"
