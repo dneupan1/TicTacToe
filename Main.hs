@@ -52,16 +52,6 @@ scoreBoard board player
   | (winner board) == player  = 1 -- Player
   | otherwise                 = -1 -- Tie
 
--- evaluateBoardMin
--- scores the board and returns minimum value move for the given board
-evaluateBoardMin :: Board -> Int
-evaluateBoardMin board
-  | length (validMoves board) == 0    = scoreBoard board 'O'
-  | otherwise = foldr max (head scores) (tail scores)
-  where
-  boards = map (move board 'O') (validMoves board)
-  scores = map evaluateBoardMax boards
-
 -- evaluateBoardMax
 -- scores the board and returns maximum value move for the given board
 evaluateBoardMax :: Board -> Int
@@ -70,7 +60,6 @@ evaluateBoardMax board
   | otherwise = foldr min (head scores) (tail scores)
   where
   boards = map (move board 'X') (validMoves board)
-  scores = map evaluateBoardMin boards
 
 -- scoreMoves
 -- Compute score for each possible move
@@ -105,9 +94,10 @@ playerMove board pos
   | not (positionValidity board pos) = (False, board)
   | otherwise = (True, (move board 'X' pos))
 
--- winner
+-- funtion :: winner
 -- Checks if the board has a winning player
--- Returns '' if no winner, or the winner ('X' or 'O')
+-- Returns winner X, or )
+-- Returns '' if no winner
 winner :: Board -> Char
 winner b
   -- horizontal lines
@@ -124,6 +114,8 @@ winner b
   -- no winner
   | otherwise = ' '
 
+-- This is a recursive function that terminates if an unparsable value (string for instance) is 
+-- is entered by the user.
 play :: Board -> IO ()
 play board = do
   putStrLn ( showBoard board )
@@ -132,11 +124,11 @@ play board = do
       putStrLn("Winner " ++ (show (winner board) ));
     else do
       putStrLn ( show (validMoves board) )
-      putStrLn "Play? "
+      putStrLn "Please choose a position: "
       pos <- getLine
       let (valid, b) = (playerMove board (read pos) )
       if (valid)
-        then do putStrLn("\nOk\n");
+        then do putStrLn("\nCPU turn \n");
                 if (' ' /= (winner b))
                   then do
                     putStrLn("Winner " ++ (show (winner b) ));
