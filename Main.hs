@@ -1,4 +1,3 @@
-
 -- https://systematicgaming.wordpress.com/code-haskell-tic-tac-toe/
 
 module Main where
@@ -48,18 +47,29 @@ move (p:board) ch pos
 -- Returns 1 if the player is a winner, -1 if not and 0 if a tie
 scoreBoard :: Board -> Char -> Int
 scoreBoard board player
-  | (winner board) == ' '     = 0 -- CPU
-  | (winner board) == player  = 1 -- Player
-  | otherwise                 = -1 -- Tie
+  | (winner board) == ' '     = 0 -- CPU is the winner
+  | (winner board) == player  = 1 -- Player is the winner. very unlikely
+  | otherwise                 = -1 -- Tie, no winner
+
+-- function :: evaluateBoardMin
+-- scores the board and returns minimum value move for the given board
+evaluateBoardMin :: Board -> Int
+evaluateBoardMin board
+  | length (validMoves board) == 0    = scoreBoard board 'O'
+  | otherwise = foldr max (head scores) (tail scores) -- get the first element and remove it
+  where
+  boards = map (move board 'O') (validMoves board)
+  scores = map evaluateBoardMax boards
 
 -- evaluateBoardMax
 -- scores the board and returns maximum value move for the given board
 evaluateBoardMax :: Board -> Int
 evaluateBoardMax board
   | length (validMoves board) == 0    = scoreBoard board 'O'
-  | otherwise = foldr min (head scores) (tail scores)
+  | otherwise = foldr min (head scores) (tail scores) -- get the first element and remove it
   where
   boards = map (move board 'X') (validMoves board)
+  scores = map evaluateBoardMin boards
 
 -- scoreMoves
 -- Compute score for each possible move
@@ -94,10 +104,9 @@ playerMove board pos
   | not (positionValidity board pos) = (False, board)
   | otherwise = (True, (move board 'X' pos))
 
--- funtion :: winner
+-- winner
 -- Checks if the board has a winning player
--- Returns winner X, or )
--- Returns '' if no winner
+-- Returns '' if no winner, or the winner ('X' or 'O')
 winner :: Board -> Char
 winner b
   -- horizontal lines
@@ -114,8 +123,6 @@ winner b
   -- no winner
   | otherwise = ' '
 
--- This is a recursive function that terminates if an unparsable value (string for instance) is 
--- is entered by the user.
 play :: Board -> IO ()
 play board = do
   putStrLn ( showBoard board )
@@ -124,11 +131,11 @@ play board = do
       putStrLn("Winner " ++ (show (winner board) ));
     else do
       putStrLn ( show (validMoves board) )
-      putStrLn "Please choose a position: "
+      putStrLn "Play? "
       pos <- getLine
       let (valid, b) = (playerMove board (read pos) )
       if (valid)
-        then do putStrLn("\nCPU turn \n");
+        then do putStrLn("\n CPU turn\n");
                 if (' ' /= (winner b))
                   then do
                     putStrLn("Winner " ++ (show (winner b) ));
@@ -147,5 +154,3 @@ play board = do
 main = do
   putStrLn "Tic Tac Toe!\n"
   play "012345678"
-
-
