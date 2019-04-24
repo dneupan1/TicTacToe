@@ -1,8 +1,10 @@
 # TicTacToe
 
 Haskell Implementation of Tic Tac Toe.
-  X - Player
-  O - Computer
+
+X - Player
+
+O - Computer
 
 The Main.hs file is executable in ghci window. Once compiled run main to start the application.
 
